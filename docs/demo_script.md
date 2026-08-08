@@ -2,6 +2,9 @@
 
 A ~5-minute walkthrough that shows the whole platform working, top to bottom.
 
+> 🎬 **Prefer to watch first?** A 90-second narrated intro is on
+> [Google Drive](https://drive.google.com/file/d/1t4jPEyIkMGl0gm0Grf2ME1F1KOTOaQnD/view?usp=sharing).
+
 ## 0. The one-liner
 "Real chess.com data flows from the public API into a warehouse, dbt turns it
 into tested marts, and three different audiences consume the same marts: a
