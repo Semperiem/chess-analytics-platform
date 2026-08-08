@@ -1,0 +1,52 @@
+version: 2
+models:
+  - name: dim_players
+    description: "One row per player (conformed dimension)."
+    columns:
+      - name: player_key
+        tests: [unique, not_null]
+      - name: username
+        tests: [not_null]
+  - name: dim_time_class
+    columns:
+      - name: time_class_key
+        tests: [unique, not_null]
+  - name: dim_date
+    columns:
+      - name: date
+        tests: [unique, not_null]
+  - name: fct_games
+    description: "One row per game."
+    columns:
+      - name: game_key
+        tests: [unique, not_null]
+      - name: player_key
+        tests:
+          - not_null
+          - relationships: { to: ref('dim_players'), field: player_key }
+      - name: time_class_key
+        tests:
+          - relationships: { to: ref('dim_time_class'), field: time_class_key }
+      - name: result_bucket
+        tests:
+          - accepted_values: { values: ['win','loss','draw'] }
+  - name: fct_player_monthly_activity
+    columns:
+      - name: player_key
+        tests:
+          - not_null
+          - relationships: { to: ref('dim_players'), field: player_key }
+  - name: mart_retention
+    columns:
+      - name: retention_rate
+        tests: [not_null]
+  - name: mart_player_segments
+    columns:
+      - name: player_key
+        tests: [unique, not_null]
+      - name: recency_segment
+        tests:
+          - accepted_values: { values: ['active','lapsing','at_risk','churned'] }
+      - name: title_tier
+        tests:
+          - accepted_values: { values: ['top_title','other_titled','untitled'] }

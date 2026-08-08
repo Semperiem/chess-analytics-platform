@@ -1,0 +1,17 @@
+# transform
+dbt-core>=1.11
+dbt-postgres>=1.10
+# warehouse analytics + notebooks
+pandas>=2.2
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
+pyarrow>=15.0
+duckdb>=1.0
+matplotlib>=3.8
+jupyter>=1.0
+nbconvert>=7.0
+nbformat>=5.10
+ipykernel>=6.29
+requests>=2.31
+# orchestration (or reuse the analytics repo's install)
+apache-airflow>=2.9

@@ -1,0 +1,11 @@
+version: 2
+sources:
+  - name: chess
+    description: "Raw dimensional model loaded from the chess.com public API pipeline."
+    schema: public
+    tables:
+      - name: dim_date
+      - name: dim_players
+      - name: dim_time_class
+      - name: fact_games
+      - name: fact_player_monthly_activity

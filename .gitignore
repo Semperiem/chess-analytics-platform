@@ -1,0 +1,13 @@
+# secrets (real credentials live here, never commit)
+.env
+superset/.env
+# envs / build artifacts
+.venv/
+.airflow_home/
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+dbt/.user.yml

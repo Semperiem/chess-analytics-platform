@@ -1,0 +1,13 @@
+chess_platform:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('PGHOST', '127.0.0.1') }}"
+      port: "{{ env_var('PGPORT', '5437') | int }}"
+      user: "{{ env_var('PGUSER', 'demo') }}"
+      password: "{{ env_var('PGPASSWORD') }}"
+      dbname: "{{ env_var('PGDATABASE', 'chess_wrenai_demo') }}"
+      schema: marts
+      threads: 4
+      sslmode: disable

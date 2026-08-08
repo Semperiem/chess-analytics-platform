@@ -1,0 +1,59 @@
+name: chess-superset
+services:
+  chess-superset-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: superset
+      POSTGRES_DB: superset
+    volumes: [chess-superset-db:/var/lib/postgresql/data]
+    networks: [ssinternal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  chess-superset-init:
+    image: chess-superset:local
+    build: {context: ., dockerfile: Dockerfile}
+    depends_on:
+      chess-superset-db: {condition: service_healthy}
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
+      DATABASE_URL: postgresql+psycopg2://superset:superset@chess-superset-db/superset
+    volumes: ["./superset_config.py:/app/pythonpath/superset_config.py"]
+    networks: [ssinternal, wrenai_wren]
+    restart: "no"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        superset db upgrade &&
+        superset fab create-admin --username "${SUPERSET_USER}" --firstname Admin --lastname User --email admin@chess.local --password "${SUPERSET_PASSWORD}" || true
+        superset init
+
+  chess-superset:
+    image: chess-superset:local
+    build: {context: ., dockerfile: Dockerfile}
+    depends_on:
+      chess-superset-init: {condition: service_completed_successfully}
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
+      DATABASE_URL: postgresql+psycopg2://superset:superset@chess-superset-db/superset
+    volumes: ["./superset_config.py:/app/pythonpath/superset_config.py"]
+    ports: ["127.0.0.1:${SUPERSET_PORT}:8088"]
+    networks: [ssinternal, wrenai_wren]
+    command: ["/bin/sh","-c","superset run -h 0.0.0.0 -p 8088 --with-threads"]
+    healthcheck:
+      test: ["CMD-SHELL","curl -fsS localhost:8088/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  chess-superset-db:
+networks:
+  ssinternal:
+  wrenai_wren:
+    external: true
