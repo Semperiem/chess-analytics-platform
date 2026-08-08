@@ -11,6 +11,14 @@ real rows, the WrenAI chatbot answers questions against the marts, the
 notebook executes against the warehouse, and the full Airflow DAG completes
 `state=success`.
 
+## 🎬 90-second intro video
+
+A short narrated walkthrough of the whole platform — the pipeline running, the
+dbt tests, the Superset dashboard, the WrenAI chatbot answering in English, and
+the notebook:
+
+**▶ [Watch the intro (Google Drive)](https://drive.google.com/file/d/1t4jPEyIkMGl0gm0Grf2ME1F1KOTOaQnD/view?usp=sharing)**
+
 ## Architecture
 
 ```
