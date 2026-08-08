@@ -1,7 +1,11 @@
 with cohort_sizes as (
+    -- true cohort population: every distinct player who joined in this month,
+    -- across ALL their activity — not just those active in month 0. Using the
+    -- month-0-only count as the denominator lets later-month re-activations
+    -- push retention above 100%, which is wrong. (Caught by the accepted_range
+    -- [0,1] test on retention_rate.)
     select cohort_month, count(distinct player_key) as cohort_size
     from {{ ref('fct_player_monthly_activity') }}
-    where months_since_join = 0
     group by cohort_month
 )
 select a.cohort_month, cs.cohort_size, a.months_since_join,

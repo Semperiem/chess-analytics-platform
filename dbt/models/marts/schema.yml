@@ -7,14 +7,21 @@ models:
         tests: [unique, not_null]
       - name: username
         tests: [not_null]
+      - name: joined_date
+        tests:
+          - dbt_utils.not_null_proportion:
+              at_least: 0.99
+
   - name: dim_time_class
     columns:
       - name: time_class_key
         tests: [unique, not_null]
+
   - name: dim_date
     columns:
       - name: date
         tests: [unique, not_null]
+
   - name: fct_games
     description: "One row per game."
     columns:
@@ -29,24 +36,99 @@ models:
           - relationships: { to: ref('dim_time_class'), field: time_class_key }
       - name: result_bucket
         tests:
-          - accepted_values: { values: ['win','loss','draw'] }
+          - accepted_values: { values: ['win', 'loss', 'draw'] }
+      - name: player_rating
+        tests:
+          - not_null
+          - dbt_utils.accepted_range: { min_value: 100, max_value: 3600 }
+      - name: game_date
+        tests:
+          - not_in_future
+
   - name: fct_player_monthly_activity
     columns:
       - name: player_key
         tests:
           - not_null
           - relationships: { to: ref('dim_players'), field: player_key }
+      - name: months_since_join
+        tests:
+          - dbt_utils.accepted_range: { min_value: 0 }
+
   - name: mart_retention
+    description: "Cohort retention; grain = (cohort_month, months_since_join)."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [cohort_month, months_since_join]
     columns:
       - name: retention_rate
-        tests: [not_null]
+        tests:
+          - not_null
+          - dbt_utils.accepted_range: { min_value: 0, max_value: 1 }
+      - name: cohort_size
+        tests:
+          - dbt_utils.accepted_range: { min_value: 3 }   # view filters cohorts < 3
+      - name: months_since_join
+        tests:
+          - dbt_utils.accepted_range: { min_value: 0, max_value: 11 }
+
+  - name: mart_growth_funnel
+    description: "Per-cohort funnel; month-6 window nests the month-3 window."
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "active_by_month6 >= active_by_month3"
+      - dbt_utils.expression_is_true:
+          expression: "pct_retained_month6 >= pct_active_by_month3"
+      - dbt_utils.expression_is_true:
+          expression: "activated_month0 <= players_joined"
+    columns:
+      - name: cohort_month
+        tests: [unique, not_null]
+      - name: players_joined
+        tests:
+          - dbt_utils.accepted_range: { min_value: 1 }
+      - name: pct_retained_month6
+        tests:
+          - dbt_utils.accepted_range: { min_value: 0, max_value: 1 }
+
+  - name: mart_time_class_performance
+    columns:
+      - name: win_rate
+        tests:
+          - dbt_utils.accepted_range: { min_value: 0, max_value: 1 }
+      - name: games
+        tests:
+          - dbt_utils.accepted_range: { min_value: 1 }
+      - name: avg_player_rating
+        tests:
+          - dbt_utils.accepted_range: { min_value: 100, max_value: 3600 }
+
+  - name: mart_daily_games
+    columns:
+      - name: game_date
+        tests:
+          - not_null
+          - not_in_future
+      - name: games_played
+        tests:
+          - dbt_utils.accepted_range: { min_value: 1 }
+      - name: win_rate
+        tests:
+          - dbt_utils.accepted_range: { min_value: 0, max_value: 1 }
+
   - name: mart_player_segments
     columns:
       - name: player_key
         tests: [unique, not_null]
       - name: recency_segment
         tests:
-          - accepted_values: { values: ['active','lapsing','at_risk','churned'] }
+          - accepted_values: { values: ['active', 'lapsing', 'at_risk', 'churned'] }
       - name: title_tier
         tests:
-          - accepted_values: { values: ['top_title','other_titled','untitled'] }
+          - accepted_values: { values: ['top_title', 'other_titled', 'untitled'] }
+      - name: engagement_quartile
+        tests:
+          - accepted_values: { values: [1, 2, 3, 4] }
+      - name: tenure_months
+        tests:
+          - dbt_utils.accepted_range: { min_value: 0 }

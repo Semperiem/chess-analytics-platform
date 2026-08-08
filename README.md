@@ -39,7 +39,7 @@ notebook executes against the warehouse, and the full Airflow DAG completes
 
 | Layer | Tool | What it is | Proof |
 |---|---|---|---|
-| **Transform** | dbt (dbt-postgres) | `staging → marts` models + 20 schema tests | `dbt build` → PASS=36, 0 errors |
+| **Transform** | dbt (dbt-postgres) | `staging → marts` models + ~50 data tests (ranges, unique combinations, cross-model reconciliation, business invariants) | `dbt build` → PASS=66, 0 errors |
 | **Dashboards** | Apache Superset | 6-chart dashboard on the marts (retention line, games/day, segment pie, cohort bar, KPI, time-control table) | every chart verified via `/api/v1/chart/data` with real rows |
 | **BI chatbot** | WrenAI | ask questions in English → generated SQL over the marts | *"Which recency segment has the most players?"* → `DENSE_RANK` SQL on `marts_mart_player_segments` → `active, 145` |
 | **Notebooks** | Jupyter | analytics straight off the warehouse marts | `notebooks/04_warehouse_marts_analytics.ipynb` executed, plots inline |
@@ -52,13 +52,36 @@ dimensional model (`public.dim_*`, `public.fact_*`) is loaded from the real
 chess.com pull; **dbt** then builds the curated `marts.*` schema that Superset,
 WrenAI, and the notebook all read from — one source of truth.
 
-- `marts.mart_retention` — cohort × months-since-join → retention rate (167 rows)
+- `marts.mart_retention` — cohort × months-since-join → retention rate, denominator = full cohort population (254 rows)
 - `marts.mart_growth_funnel` — per-cohort activation / month-3 / month-6 retention (133)
 - `marts.mart_player_segments` — recency segment, title tier, tenure, engagement quartile (245)
 - `marts.mart_time_class_performance` — games / win rate / avg rating by time control (9)
 - `marts.mart_daily_games` — daily volume, distinct players, win rate (449)
 - `marts.mart_rating_trend` — monthly avg rating per player × time control (216)
 - plus conformed `marts.dim_players / dim_time_class / dim_date` and `fct_games / fct_player_monthly_activity`
+
+## Data quality tests
+
+The dbt suite goes well beyond `not_null`/`unique`. It combines four kinds of
+checks (run as a gate in the pipeline):
+
+- **Generic range/shape tests** (`dbt_utils`): `accepted_range` on rates
+  (`retention_rate`, `win_rate` ∈ [0,1]) and ratings (100–3600),
+  `unique_combination_of_columns` for composite grains, `not_null_proportion`.
+- **Expression invariants** (`dbt_utils.expression_is_true`): e.g. in the growth
+  funnel the month-6 window nests the month-3 window, so
+  `active_by_month6 >= active_by_month3` must always hold.
+- **A custom generic test** (`not_in_future`): no game/activity date may be after today.
+- **Singular cross-model reconciliation tests** (`tests/*.sql`):
+  `mart_daily_games` and `mart_time_class_performance` must reconcile exactly to
+  the `fct_games` grain; every player has exactly one segment row; `rating_diff`
+  must equal `player_rating - opponent_rating`; and active players can never
+  exceed cohort size.
+
+These caught a real bug: the original retention denominator (players active in
+month 0) let later-month re-activations push retention **above 100%**. The
+`accepted_range` test failed on 10 rows; `mart_retention` now uses the full
+cohort population as the denominator, and the suite is green.
 
 ## Quickstart
 
