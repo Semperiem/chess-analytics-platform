@@ -29,7 +29,7 @@ re-loading identical data and re-wiring WrenAI for no benefit. Instead:
 
 - **raw** lands in `public.*` (loaded from the real pull),
 - **dbt** owns `staging.*` (views) and `marts.*` (tables + tests),
-- Superset, WrenAI, and notebooks all read the same `marts.*` — one source of truth.
+- Superset, WrenAI, and notebooks all read the same `marts.*`: one source of truth.
 
 `generate_schema_name` is overridden so models land in clean `staging` / `marts`
 schemas (not `marts_staging`).
@@ -45,7 +45,7 @@ schemas (not `marts_staging`).
 | Airflow | Python (TaskFlow) | shells out to the above |
 
 Superset needs the Postgres driver, which the stock `apache/superset` image
-does **not** ship in its uv-managed venv — a 3-line `Dockerfile` bakes in
+does **not** ship in its uv-managed venv, a 3-line `Dockerfile` bakes in
 `psycopg2-binary` (the approach Superset's own docs recommend over runtime
 installs).
 
@@ -60,7 +60,7 @@ ingest_raw → build_dimensional → load_warehouse → dbt_build → dbt_test �
 
 Safe for a shared warehouse: `ingest_raw` reuses the committed real pull unless
 `FORCE_INGEST=1`; `load_warehouse` skips the reload when data is already present
-unless `FORCE_RELOAD=1`. `dbt_test` is the quality gate — a failing test fails
+unless `FORCE_RELOAD=1`. `dbt_test` is the quality gate, a failing test fails
 the run and the BI refresh never happens. Verified end-to-end:
 `airflow dags test chess_platform_pipeline` → `state=success`.
 

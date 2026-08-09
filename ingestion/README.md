@@ -3,9 +3,9 @@
 The ingestion stage pulls real data from the chess.com public API and shapes it
 for the warehouse:
 
-- `ingest` — pulls titled players, profiles, and monthly game archives from the
+- `ingest`: pulls titled players, profiles, and monthly game archives from the
   chess.com public API into `data/raw/*.json`.
-- `transform` — reshapes the raw JSON into `data/processed/*.parquet`.
+- `transform`: reshapes the raw JSON into `data/processed/*.parquet`.
 
 The platform's Airflow DAG runs this as its `ingest_raw` task (opt-in via
 `FORCE_INGEST=1`); `build_dimensional` then turns the parquet into the
