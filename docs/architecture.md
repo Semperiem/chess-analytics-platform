@@ -11,7 +11,7 @@ real pull → parquet  (245 titled players, 12,255 games, 10,555 player-months)
         ▼
 Postgres  public.dim_date / dim_players / dim_time_class
           public.fact_games / fact_player_monthly_activity        ← raw dimensional model
-        │  (dbt: staging views → marts tables, 20 tests as a gate)
+        │  (dbt: staging views → marts tables, ~50 tests as a gate)
         ▼
 Postgres  marts.dim_* / fct_* / mart_retention / mart_growth_funnel /
           mart_player_segments / mart_time_class_performance /

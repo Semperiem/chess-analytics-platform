@@ -30,7 +30,7 @@ the notebook:
                         ▼
         Postgres warehouse  ── public.dim_*/fact_*  (raw dimensional model)
                         │
-                    dbt build + test         ← transform layer (staging → marts, 20 tests)
+                    dbt build + test         ← transform layer (staging → marts, ~50 tests)
                         ▼
         Postgres warehouse  ── marts.*  (curated, tested)
               │                     │                    │
@@ -112,7 +112,7 @@ Analytics*) and the **WrenAI** chatbot at `http://127.0.0.1:8602`.
 ## Repo layout
 
 ```
-dbt/                 staging → marts models + 20 tests (dbt-postgres)
+dbt/                 staging → marts models + ~50 tests (dbt-postgres)
 superset/            dedicated Superset stack + REST bootstrap (dashboard as code)
 airflow/dags/        chess_platform_pipeline.py, the end-to-end orchestration DAG
 notebooks/           04_warehouse_marts_analytics.ipynb (executed off the marts)

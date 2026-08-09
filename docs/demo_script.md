@@ -23,7 +23,7 @@ reach the dashboards.
 ```bash
 make dbt
 ```
-`PASS=36` (11 models + 20 tests). Show `dbt/models/marts/mart_retention.sql`, 
+`PASS=66` (16 models + ~50 tests). Show `dbt/models/marts/mart_retention.sql`, 
 the cohort math lives in version-controlled SQL, tested, not buried in a BI tool.
 
 ## 3. Dashboards: Superset (~90s)
